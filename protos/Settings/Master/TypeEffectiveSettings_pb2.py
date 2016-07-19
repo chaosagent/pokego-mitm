@@ -16,13 +16,12 @@ _sym_db = _symbol_database.Default()
 from Enums import BadgeType_pb2 as Enums_dot_BadgeType__pb2
 from Enums import PokemonType_pb2 as Enums_dot_PokemonType__pb2
 
-from Enums.BadgeType_pb2 import *
 
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='Settings/Master/TypeEffectiveSettings.proto',
   package='POGOProtos.Settings.Master',
   syntax='proto3',
-  serialized_pb=_b('\n+Settings/Master/TypeEffectiveSettings.proto\x12\x1aPOGOProtos.Settings.Master\x1a\x15\x45nums/BadgeType.proto\x1a\x17\x45nums/PokemonType.proto\"b\n\x15TypeEffectiveSettings\x12\x15\n\rattack_scalar\x18\x01 \x03(\x02\x12\x32\n\x0b\x61ttack_type\x18\x02 \x01(\x0e\x32\x1d.POGOProtos.Enums.PokemonTypeP\x00\x62\x06proto3')
+  serialized_pb=_b('\n+Settings/Master/TypeEffectiveSettings.proto\x12\x1aPOGOProtos.Settings.Master\x1a\x15\x45nums/BadgeType.proto\x1a\x17\x45nums/PokemonType.proto\"b\n\x15TypeEffectiveSettings\x12\x15\n\rattack_scalar\x18\x01 \x03(\x02\x12\x32\n\x0b\x61ttack_type\x18\x02 \x01(\x0e\x32\x1d.POGOProtos.Enums.PokemonTypeb\x06proto3')
   ,
   dependencies=[Enums_dot_BadgeType__pb2.DESCRIPTOR,Enums_dot_PokemonType__pb2.DESCRIPTOR,])
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)

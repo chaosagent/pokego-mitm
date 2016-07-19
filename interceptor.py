@@ -17,6 +17,8 @@ request_decoders = {
 response_decoders = {
     2: 'GetPlayer',
     4: 'GetInventory',
+    104: 'FortDetails',
+    103: 'CatchPokemon',
     106: 'GetMapObjects',
 }
 
@@ -34,6 +36,7 @@ requested = {}
 def start(context, argv):
     # Register handlers
     import handlers
+    reload(handlers)
     for attr in dir(handlers):
         func = getattr(handlers, attr)
         if not hasattr(func, '__call__'):
@@ -72,7 +75,7 @@ def request(context, flow):
     context.log('Got request {}.'.format(envelope.request_id))
     if request_envelope_handler:
         context.log('Handling request {}...'.format(envelope.request_id))
-        request_envelope_handler(envelope)
+        request_envelope_handler(context, envelope)
 
     requested[envelope.request_id] = [request.request_type for request in envelope.requests]
 
@@ -92,7 +95,7 @@ def request(context, flow):
         request_obj = message()
         request_obj.ParseFromString(request.request_message)
 
-        request_handlers[request_type](request_obj)
+        request_handlers[request_type](context, request_obj)
 
         envelope.requests[i].request_message = request_obj.SerializeToString()
 
@@ -117,7 +120,7 @@ def response(context, flow):
         return
     if response_envelope_handler:
         context.log('Handling response {}...'.format(envelope.response_id))
-        response_envelope_handler(envelope)
+        response_envelope_handler(context, envelope)
 
     for i, response in enumerate(envelope.returns):
         request_type = requested[envelope.request_id][i]
@@ -134,7 +137,7 @@ def response(context, flow):
         response_obj = message()
         response_obj.ParseFromString(response)
 
-        response_handlers[request_type](response_obj)
+        response_handlers[request_type](context, response_obj)
 
         envelope.returns[i] = response_obj.SerializeToString()
 

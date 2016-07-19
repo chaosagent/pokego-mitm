@@ -15,13 +15,12 @@ _sym_db = _symbol_database.Default()
 
 from Enums import BadgeType_pb2 as Enums_dot_BadgeType__pb2
 
-from Enums.BadgeType_pb2 import *
 
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='Player/EquippedBadge.proto',
   package='POGOProtos.Player',
   syntax='proto3',
-  serialized_pb=_b('\n\x1aPlayer/EquippedBadge.proto\x12\x11POGOProtos.Player\x1a\x15\x45nums/BadgeType.proto\"\x7f\n\rEquippedBadge\x12/\n\nbadge_type\x18\x01 \x01(\x0e\x32\x1b.POGOProtos.Enums.BadgeType\x12\r\n\x05level\x18\x02 \x01(\x05\x12.\n&next_equip_change_allowed_timestamp_ms\x18\x03 \x01(\x03P\x00\x62\x06proto3')
+  serialized_pb=_b('\n\x1aPlayer/EquippedBadge.proto\x12\x11POGOProtos.Player\x1a\x15\x45nums/BadgeType.proto\"\x7f\n\rEquippedBadge\x12/\n\nbadge_type\x18\x01 \x01(\x0e\x32\x1b.POGOProtos.Enums.BadgeType\x12\r\n\x05level\x18\x02 \x01(\x05\x12.\n&next_equip_change_allowed_timestamp_ms\x18\x03 \x01(\x03\x62\x06proto3')
   ,
   dependencies=[Enums_dot_BadgeType__pb2.DESCRIPTOR,])
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
