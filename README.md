@@ -8,6 +8,11 @@ Quick Start
 
 Run `mitmdump -p 1337 -s interceptor.py --ignore '^(?!pgorelease\.nianticlabs\.com)'` and point your device at it.
 
+Alternatively, if you would like an interface to inspect requests/responses with, use `mitmproxy -p 1337 -s interceptor.py --ignore '^(?!pgorelease\.nianticlabs\.com)'`.
+
+Adding Handlers
+------
+
 To add handlers, use the decorators provided in `util.py` and write handlers in `handlers.py`.
 
 The following handlers are available:
@@ -16,7 +21,7 @@ The following handlers are available:
 - `request_handler(request_code)`
 - `response_handler(response_code)`
 
-Hanlders should be in the form:
+Handlers should be in the form:
 
 ```python
 @request_envelope_handler
