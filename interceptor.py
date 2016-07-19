@@ -20,6 +20,10 @@ response_decoders = {
     106: 'GetMapObjects',
 }
 
+request_envelope_handler = None
+
+response_envelope_handler = None
+
 request_handlers = {}
 
 response_handlers = {}
@@ -34,6 +38,15 @@ def start(context, argv):
         func = getattr(handlers, attr)
         if not hasattr(func, '__call__'):
             continue
+
+        if hasattr(func, 'handles_request_envelope'):
+            global request_envelope_handler
+            request_envelope_handler = func.handles_request_envelope
+            context.log('Got request envelope handler {}.'.format(func.__name__))
+        if hasattr(func, 'handles_response_envelope'):
+            global response_envelope_handler
+            response_envelope_handler = func.handles_response_envelope
+            context.log('Got request envelope handler {}.'.format(func.__name__))
 
         if hasattr(func, 'handles_requests'):
             for request_type in func.handles_requests:
@@ -57,6 +70,10 @@ def request(context, flow):
         return
 
     context.log('Got request {}.'.format(envelope.request_id))
+    if request_envelope_handler:
+        context.log('Handling request {}...'.format(envelope.request_id))
+        request_envelope_handler(envelope)
+
     requested[envelope.request_id] = [request.request_type for request in envelope.requests]
 
     for i, request in enumerate(envelope.requests):
@@ -98,6 +115,9 @@ def response(context, flow):
     if envelope.request_id not in requested:
         context.log('Unknown request {}.'.format(envelope.request_id))
         return
+    if response_envelope_handler:
+        context.log('Handling response {}...'.format(envelope.response_id))
+        response_envelope_handler(envelope)
 
     for i, response in enumerate(envelope.returns):
         request_type = requested[envelope.request_id][i]

@@ -13,6 +13,16 @@ def h2f(hex):
     return struct.unpack('<d', struct.pack('<Q', int(hex, 16)))[0]
 
 
+def request_envelope_handler(func):
+    request_envelope_handler.handles_request_envelope = func
+    return func
+
+
+def response_envelope_handler(func):
+    response_envelope_handler.handles_response_envelope = func
+    return func
+
+
 def request_handler(request_type):
     def decorator(func):
         if not hasattr(func, 'handles_requests'):
