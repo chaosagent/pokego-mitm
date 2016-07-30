@@ -1,4 +1,7 @@
+import json
 import struct
+
+from protobuf_to_dict import protobuf_to_dict
 
 
 def f2i(float):
@@ -14,12 +17,12 @@ def h2f(hex):
 
 
 def request_envelope_handler(func):
-    request_envelope_handler.handles_request_envelope = func
+    func.handles_request_envelope = True
     return func
 
 
 def response_envelope_handler(func):
-    response_envelope_handler.handles_response_envelope = func
+    func.handles_response_envelope = True
     return func
 
 
@@ -41,3 +44,7 @@ def response_handler(request_type):
         return func
 
     return decorator
+
+
+def to_json(protobuf_obj):
+    return json.dumps(protobuf_to_dict(protobuf_obj), sort_keys=True, indent=4)

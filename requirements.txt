@@ -2,3 +2,5 @@ mitmproxy
 netlib
 netlib
 protobuf
+protobuf_to_dict
+s2sphere

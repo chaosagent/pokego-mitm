@@ -1,25 +1,31 @@
 from __future__ import print_function
 
+from functools import wraps
 import os
 import sys
 
 from netlib.encoding import encode_gzip, decode_gzip
 
-from protos.Networking.Envelopes_pb2 import Envelopes
+from POGOProtos.Networking.Envelopes.RequestEnvelope_pb2 import RequestEnvelope
+from POGOProtos.Networking.Envelopes.ResponseEnvelope_pb2 import ResponseEnvelope
 
-if os.path.abspath('protos') not in sys.path:
-    sys.path.append(os.path.abspath('protos'))
+self_path = os.path.abspath(os.path.dirname(__file__))
+if os.path.abspath('POGOProtos') not in sys.path:
+    sys.path.append(os.path.abspath('POGOProtos'))
 
 request_decoders = {
     103: 'CatchPokemon',
+    106: 'GetMapObjects',
 }
 
 response_decoders = {
     2: 'GetPlayer',
     4: 'GetInventory',
+    5: 'DownloadSettings',
     104: 'FortDetails',
     103: 'CatchPokemon',
     106: 'GetMapObjects',
+    121: 'GetPlayerProfile',
 }
 
 request_envelope_handler = None
@@ -32,9 +38,16 @@ response_handlers = {}
 
 requested = {}
 
+last_handler_file_change = None
 
-def start(context, argv):
+
+def register_handlers(context):
     # Register handlers
+    global last_handler_file_change
+    if last_handler_file_change and os.stat(os.path.join(self_path, 'handlers.py')).st_mtime <= last_handler_file_change:
+        return
+    last_handler_file_change = os.stat(os.path.join(self_path, 'handlers.py')).st_mtime
+    context.log('Reloading handlers...')
     import handlers
     reload(handlers)
     for attr in dir(handlers):
@@ -44,11 +57,11 @@ def start(context, argv):
 
         if hasattr(func, 'handles_request_envelope'):
             global request_envelope_handler
-            request_envelope_handler = func.handles_request_envelope
+            request_envelope_handler = func
             context.log('Got request envelope handler {}.'.format(func.__name__))
         if hasattr(func, 'handles_response_envelope'):
             global response_envelope_handler
-            response_envelope_handler = func.handles_response_envelope
+            response_envelope_handler = func
             context.log('Got request envelope handler {}.'.format(func.__name__))
 
         if hasattr(func, 'handles_requests'):
@@ -61,13 +74,27 @@ def start(context, argv):
                 context.log('Got response handler {} for request type {}.'.format(func.__name__, request_type))
 
 
+def refresh_handlers(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        register_handlers(args[0])
+        return func(*args, **kwargs)
+    return wrapper
+
+
+@refresh_handlers
+def start(context, argv):
+    pass
+
+
+@refresh_handlers
 def request(context, flow):
     if not flow.request.url.startswith('https://pgorelease.nianticlabs.com/plfe'):
         return
 
     request_body = flow.request.content
     try:
-        envelope = Envelopes.RequestEnvelope()
+        envelope = RequestEnvelope()
         envelope.ParseFromString(request_body)
     except:
         return
@@ -81,13 +108,13 @@ def request(context, flow):
 
     for i, request in enumerate(envelope.requests):
         request_type = request.request_type
-        context.log('Got request type {}.'.format(request.request_type))
+        context.log('Got request type {}.'.format(request.request_type), level='debug')
         if request_type not in request_decoders or request_type not in request_handlers:
             continue
 
         context.log('Handling request for request type {}...'.format(request_type))
         request_proto_name = '{}Message'.format(request_decoders[request_type])
-        message_proto_import = __import__('protos.Networking.Requests.Messages.{}_pb2'.format(request_proto_name),
+        message_proto_import = __import__('POGOProtos.Networking.Requests.Messages.{}_pb2'.format(request_proto_name),
                                           globals(),
                                           locals(), fromlist=[request_proto_name])
         message = getattr(message_proto_import, request_proto_name)
@@ -103,13 +130,14 @@ def request(context, flow):
     flow.request.content = processed_request_body
 
 
+@refresh_handlers
 def response(context, flow):
     if not flow.request.url.startswith('https://pgorelease.nianticlabs.com/plfe'):
         return
 
     try:
         response_body = decode_gzip(flow.response.content)
-        envelope = Envelopes.ResponseEnvelope()
+        envelope = ResponseEnvelope()
         envelope.ParseFromString(response_body)
     except:
         return
@@ -124,13 +152,13 @@ def response(context, flow):
 
     for i, response in enumerate(envelope.returns):
         request_type = requested[envelope.request_id][i]
-        context.log('Got response for request type {}.'.format(request_type))
+        context.log('Got response for request type {}.'.format(request_type), level='debug')
         if request_type not in response_decoders or request_type not in response_handlers:
             continue
 
         context.log('Handling response for request type {}...'.format(request_type))
         response_proto_name = '{}Response'.format(response_decoders[request_type])
-        message_proto_import = __import__('protos.Networking.Responses.{}_pb2'.format(response_proto_name), globals(),
+        message_proto_import = __import__('POGOProtos.Networking.Responses.{}_pb2'.format(response_proto_name), globals(),
                                           locals(), fromlist=[response_proto_name])
         message = getattr(message_proto_import, response_proto_name)
 
